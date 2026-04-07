@@ -9,10 +9,8 @@ const Home = () => {
   return (
     <div className="home-wrapper">
 
-      {/* Left Section */}
       <div className="home-left"></div>
 
-      {/* Right Section */}
       <div className="home-right">
         <h1>Welcome to CareerConnect</h1>
         <p>

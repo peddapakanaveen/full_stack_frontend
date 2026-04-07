@@ -1,6 +1,9 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 
+// ✅ service import for backend call
+import { bookSession } from "../services/sessionService";
+
 function BookSession() {
   const [form, setForm] = useState({
     name: "",
@@ -18,28 +21,29 @@ function BookSession() {
     setForm({ ...form, [e.target.name]: e.target.value });
   };
 
-  const handleSubmit = (e) => {
+  // ✅ FULL UPDATED HANDLE SUBMIT
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
+    // 1️⃣ Validate fields
     if (!form.name || !form.date || !form.time) {
       setMessage("Please fill all fields");
       return;
     }
 
-    const existingSessions =
-      JSON.parse(localStorage.getItem("sessions")) || [];
+    // 2️⃣ Check local storage for existing sessions
+    const existingSessions = JSON.parse(localStorage.getItem("sessions")) || [];
 
-    // ✅ Prevent Double Booking
+    // 3️⃣ Prevent double booking locally
     const alreadyBooked = existingSessions.find(
-      (session) =>
-        session.date === form.date && session.time === form.time
+      (session) => session.date === form.date && session.time === form.time
     );
-
     if (alreadyBooked) {
       setMessage("This slot is already booked. Please choose another.");
       return;
     }
 
+    // 4️⃣ Prepare new session object
     const newSession = {
       id: Date.now(),
       name: form.name,
@@ -48,10 +52,20 @@ function BookSession() {
       status: "Pending",
     };
 
-    const updatedSessions = [...existingSessions, newSession];
+    // 5️⃣ Backend API call (new feature)
+    try {
+      console.log("🚀 Sending to backend:", newSession);
+      const res = await bookSession(newSession);
+      console.log("✅ Backend response:", res.data);
+    } catch (err) {
+      console.error("❌ Backend not connected, continuing with local storage");
+    }
 
+    // 6️⃣ Save session locally
+    const updatedSessions = [...existingSessions, newSession];
     localStorage.setItem("sessions", JSON.stringify(updatedSessions));
 
+    // 7️⃣ Update UI
     setLastBooking(newSession);
     setMessage("Session booked successfully!");
     setShowQuiz(true);
@@ -127,7 +141,14 @@ function BookSession() {
           </div>
         )}
 
-        {/* ✅ Cancel All Bookings */}
+        {/* ✅ Backend info */}
+        {lastBooking && (
+          <p style={{ textAlign: "center", marginTop: "10px", color: "blue" }}>
+            (Also synced with backend if available)
+          </p>
+        )}
+
+        {/* ✅ Cancel all button */}
         {lastBooking && (
           <button
             onClick={handleCancelAll}
@@ -137,7 +158,7 @@ function BookSession() {
           </button>
         )}
 
-        {/* ✅ Quiz Button */}
+        {/* ✅ Quiz button */}
         {showQuiz && (
           <div style={{ marginTop: "20px", textAlign: "center" }}>
             <button
@@ -153,6 +174,7 @@ function BookSession() {
   );
 }
 
+// ✅ Styles (unchanged)
 const styles = {
   container: {
     display: "flex",

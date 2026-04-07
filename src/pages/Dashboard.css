@@ -34,3 +34,15 @@
   transform: translateY(-10px);
   background: #f3f6ff;
 }
+.dashboard-username {
+  color: white;
+  font-size: 20px;
+  margin-top: -25px;
+  margin-bottom: 25px;
+}
+
+.dashboard-username span {
+  font-size: 30px; /* Bigger name */
+  font-weight: bold;
+  color: #ffd700;
+}

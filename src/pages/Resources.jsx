@@ -1,10 +1,17 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import "./Resources.css";
+
+// ✅ NEW: API import
+import API from "../services/api";
 
 function Resources() {
   const navigate = useNavigate();
 
+  // ✅ NEW: backend state
+  const [resourceData, setResourceData] = useState([]);
+
+  // ✅ EXISTING DATA (UNCHANGED)
   const resources = [
     {
       id: "1",
@@ -23,15 +30,33 @@ function Resources() {
     }
   ];
 
+  // ✅ NEW: fetch from backend
+  useEffect(() => {
+    API.get("/resources")
+      .then((res) => {
+        setResourceData(res.data);
+      })
+      .catch((err) => {
+        console.log("Using default resources (backend not connected)");
+      });
+  }, []);
+
+  // ✅ NEW: backend OR fallback
+  const displayResources =
+    resourceData.length > 0 ? resourceData : resources;
+
   return (
     <div className="resources-container">
       <h1 className="resources-heading">Learning Resources</h1>
 
       <div className="resources-grid">
-        {resources.map((item) => (
+        {displayResources.map((item) => (
           <div className="resource-card" key={item.id}>
             <h2>{item.title}</h2>
-            <p>{item.short}</p>
+
+            {/* ✅ supports both frontend & backend fields */}
+            <p>{item.short || item.description}</p>
+
             <button
               className="explore-btn"
               onClick={() => navigate(`/resource/${item.id}`)}

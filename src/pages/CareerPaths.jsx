@@ -1,10 +1,17 @@
-import React from "react";
+import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FaLaptopCode, FaUserMd, FaBalanceScale, FaChartLine, FaPaintBrush } from "react-icons/fa";
+
+// ✅ NEW: import service
+import { getAllCareers } from "../services/careerService";
 
 function Careers() {
   const navigate = useNavigate();
 
+  // ✅ NEW: state
+  const [careerData, setCareerData] = useState([]);
+
+  // ✅ EXISTING fallback data (UNCHANGED)
   const careers = [
     { title: "Engineering", icon: <FaLaptopCode />, path: "/engineering" },
     { title: "Medical", icon: <FaUserMd />, path: "/medical" },
@@ -13,16 +20,30 @@ function Careers() {
     { title: "Arts & Design", icon: <FaPaintBrush />, path: "/arts" },
   ];
 
+  // ✅ NEW: API call
+  useEffect(() => {
+    getAllCareers()
+      .then((res) => {
+        setCareerData(res.data);
+      })
+      .catch((err) => {
+        console.log("Backend not connected, using default careers");
+      });
+  }, []);
+
+  // ✅ NEW: use backend if available, else fallback
+  const displayCareers = careerData.length > 0 ? careerData : careers;
+
   return (
     <div style={styles.container}>
       <h1 style={styles.title}>Explore Career Paths</h1>
 
       <div style={styles.grid}>
-        {careers.map((career, index) => (
+        {displayCareers.map((career, index) => (
           <div
             key={index}
             style={styles.card}
-            onClick={() => navigate(career.path)}
+            onClick={() => navigate(career.path || "/careers")}
             onMouseEnter={(e) => {
               e.currentTarget.style.transform = "translateY(-12px)";
               e.currentTarget.style.boxShadow = "0 20px 40px rgba(0,0,0,0.3)";
@@ -32,8 +53,14 @@ function Careers() {
               e.currentTarget.style.boxShadow = "0 10px 25px rgba(0,0,0,0.2)";
             }}
           >
-            <div style={styles.icon}>{career.icon}</div>
-            <h3 style={styles.cardTitle}>{career.title}</h3>
+            {/* ✅ keep icons for default, backend may not have icons */}
+            <div style={styles.icon}>
+              {career.icon || <FaLaptopCode />}
+            </div>
+
+            <h3 style={styles.cardTitle}>
+              {career.title || career.name}
+            </h3>
           </div>
         ))}
       </div>
