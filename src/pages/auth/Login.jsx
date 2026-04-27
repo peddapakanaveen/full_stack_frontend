@@ -26,9 +26,10 @@ const Login = () => {
         password: password,
       });
 
-      console.log("LOGIN RESPONSE:", res.data); // ✅ DEBUG
+      console.log("LOGIN RESPONSE:", res.data);
 
-      if (!res.data) {
+      // ✅ Check response
+      if (!res || !res.data) {
         alert("Invalid Credentials");
         return;
       }
@@ -36,12 +37,12 @@ const Login = () => {
       // ✅ Store user data
       localStorage.setItem("user", JSON.stringify(res.data));
 
-      // ✅ Keep existing auth logic
+      // ✅ Keep your auth logic
       login(username, role);
 
       alert("Login Successful");
 
-      // ✅ Navigation (unchanged)
+      // ✅ Navigation
       if (role === "admin") {
         navigate("/admin");
       } else if (role === "counsellor") {
@@ -51,13 +52,15 @@ const Login = () => {
       }
 
     } catch (error) {
-      console.error("LOGIN ERROR:", error.response || error); // ✅ DEBUG
+      console.error("LOGIN ERROR:", error.response || error);
 
-      if (error.response) {
-        alert(
-          error.response.data?.message ||
-          "Invalid credentials or server error"
-        );
+      // ✅ Proper error handling
+      if (error.response && error.response.data) {
+        if (typeof error.response.data === "string") {
+          alert(error.response.data); // shows backend message
+        } else {
+          alert("Invalid credentials");
+        }
       } else {
         alert("Backend not reachable. Check if server is running.");
       }

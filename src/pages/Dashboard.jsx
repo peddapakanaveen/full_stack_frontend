@@ -1,6 +1,5 @@
 import React, { useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import API from "../services/api";
 import "./Dashboard.css";
 
 function Dashboard() {
@@ -8,24 +7,17 @@ function Dashboard() {
 
   const [user, setUser] = useState(null);
 
-  // ✅ Protect route
+  // ✅ Protect route + load user from localStorage
   useEffect(() => {
     const storedUser = localStorage.getItem("user");
+
     if (!storedUser) {
       navigate("/");
+    } else {
+      // ✅ SET LOGGED-IN USER
+      setUser(JSON.parse(storedUser));
     }
   }, [navigate]);
-
-  // ✅ Fetch user
-  useEffect(() => {
-    API.get("/users/profile")
-      .then((res) => {
-        setUser(res.data);
-      })
-      .catch((err) => {
-        console.error(err);
-      });
-  }, []);
 
   return (
     <div className="dashboard">
@@ -34,7 +26,7 @@ function Dashboard() {
       <div className="dashboard-header">
         <h1 className="dashboard-title">Welcome to Your Portal</h1>
 
-        {/* ✅ Bigger & Stylish Name */}
+        {/* ✅ Dynamic Name */}
         {user && (
           <h2 className="welcome-user">
             Hello, <span>{user.name}</span>

@@ -1,7 +1,5 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-
-// ✅ service import for backend call
 import { bookSession } from "../services/sessionService";
 
 function BookSession() {
@@ -25,49 +23,70 @@ function BookSession() {
   const handleSubmit = async (e) => {
     e.preventDefault();
 
-    // 1️⃣ Validate fields
+    // 1️⃣ Validate
     if (!form.name || !form.date || !form.time) {
       setMessage("Please fill all fields");
       return;
     }
 
-    // 2️⃣ Check local storage for existing sessions
-    const existingSessions = JSON.parse(localStorage.getItem("sessions")) || [];
+    // 2️⃣ Local check (your feature)
+    const existingSessions =
+      JSON.parse(localStorage.getItem("sessions")) || [];
 
-    // 3️⃣ Prevent double booking locally
     const alreadyBooked = existingSessions.find(
-      (session) => session.date === form.date && session.time === form.time
+      (session) =>
+        session.date === form.date && session.time === form.time
     );
+
     if (alreadyBooked) {
-      setMessage("This slot is already booked. Please choose another.");
+      setMessage(
+        "This slot is already booked. Please choose another."
+      );
       return;
     }
 
-    // 4️⃣ Prepare new session object
-    const newSession = {
-      id: Date.now(),
+    // 3️⃣ Backend object (clean)
+    const backendSession = {
       name: form.name,
       date: form.date,
       time: form.time,
       status: "Pending",
     };
 
-    // 5️⃣ Backend API call (new feature)
+    let savedSession = null;
+
+    // 4️⃣ CALL BACKEND (IMPORTANT)
     try {
-      console.log("🚀 Sending to backend:", newSession);
-      const res = await bookSession(newSession);
+      console.log("🚀 Sending to backend:", backendSession);
+
+      const res = await bookSession(backendSession);
+
       console.log("✅ Backend response:", res.data);
+
+      savedSession = res.data; // ✅ real DB data
+
+      setMessage("Session booked successfully!");
     } catch (err) {
-      console.error("❌ Backend not connected, continuing with local storage");
+      console.error("❌ Backend error:", err.response || err);
+
+      alert("❌ Backend not saving data. Check server.");
+      return; // 🚨 STOP if backend fails
     }
 
-    // 6️⃣ Save session locally
+    // 5️⃣ Save locally (your feature)
+    const newSession = {
+      id: savedSession.id || Date.now(),
+      name: form.name,
+      date: form.date,
+      time: form.time,
+      status: "Pending",
+    };
+
     const updatedSessions = [...existingSessions, newSession];
     localStorage.setItem("sessions", JSON.stringify(updatedSessions));
 
-    // 7️⃣ Update UI
+    // 6️⃣ UI updates (unchanged)
     setLastBooking(newSession);
-    setMessage("Session booked successfully!");
     setShowQuiz(true);
     setForm({ name: "", date: "", time: "" });
   };
@@ -131,7 +150,7 @@ function BookSession() {
           {message && <p style={styles.message}>{message}</p>}
         </form>
 
-        {/* ✅ Booking Summary */}
+        {/* Booking Summary */}
         {lastBooking && message === "Session booked successfully!" && (
           <div style={styles.summary}>
             <h4>Booking Details</h4>
@@ -141,24 +160,21 @@ function BookSession() {
           </div>
         )}
 
-        {/* ✅ Backend info */}
+        {/* Backend Info */}
         {lastBooking && (
           <p style={{ textAlign: "center", marginTop: "10px", color: "blue" }}>
-            (Also synced with backend if available)
+            (Stored in database successfully)
           </p>
         )}
 
-        {/* ✅ Cancel all button */}
+        {/* Cancel */}
         {lastBooking && (
-          <button
-            onClick={handleCancelAll}
-            style={{ ...styles.cancelButton }}
-          >
+          <button onClick={handleCancelAll} style={styles.cancelButton}>
             Cancel All Bookings
           </button>
         )}
 
-        {/* ✅ Quiz button */}
+        {/* Quiz */}
         {showQuiz && (
           <div style={{ marginTop: "20px", textAlign: "center" }}>
             <button
@@ -174,7 +190,7 @@ function BookSession() {
   );
 }
 
-// ✅ Styles (unchanged)
+// Styles unchanged
 const styles = {
   container: {
     display: "flex",

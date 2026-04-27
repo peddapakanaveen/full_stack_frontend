@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { useAuth } from "../../context/AuthContext";
 import { useNavigate } from "react-router-dom";
+import API from "../../services/api"; // ✅ ADDED
 
 function Signup() {
   const { login } = useAuth();
@@ -22,13 +23,39 @@ function Signup() {
     });
   };
 
-  const handleSubmit = (e) => {
+  // ✅ UPDATED FUNCTION
+  const handleSubmit = async (e) => {
     e.preventDefault();
 
-    localStorage.setItem("user", JSON.stringify(formData));
-    login(formData.email, formData.role);
+    console.log("Sending data:", formData); // ✅ DEBUG
 
-    navigate("/dashboard");
+    try {
+      const res = await API.post("/auth/signup", {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        password: formData.password.trim(),
+      });
+
+      console.log("SIGNUP RESPONSE:", res.data);
+
+      // ✅ KEEP YOUR EXISTING FEATURES
+      localStorage.setItem("user", JSON.stringify(res.data));
+      login(formData.email, formData.role);
+
+      alert("Signup Successful ✅");
+
+      navigate("/dashboard");
+
+    } catch (error) {
+      console.error("SIGNUP ERROR:", error.response || error);
+
+      // ✅ BETTER ERROR HANDLING
+      if (error.response && typeof error.response.data === "string") {
+        alert(error.response.data);
+      } else {
+        alert("Error during signup");
+      }
+    }
   };
 
   return (

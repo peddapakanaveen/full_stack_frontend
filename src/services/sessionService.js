@@ -1,5 +1,5 @@
 import API from "./api";
 
-export const bookSession = (data) => {
-  return API.post("/sessions", data);
+export const bookSession = (sessionData) => {
+  return API.post("/sessions", sessionData);
 };
